@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import PlaybackControls from "../components/PlaybackControls";
-import LuminoDockPanel from "../components/LuminoDockPanel";
 import { usePlaybackState } from "../hooks/usePlaybackState";
 import {
   DEFAULT_PLAYGROUND_CODE,
@@ -54,13 +52,6 @@ const PYTHON_RUN_LIMITS = Object.freeze({
   timeoutMs: 45_000,
   maxFrames: 240,
 });
-const PLAYGROUND_DOCK_PANELS = Object.freeze([
-  { id: "editor", title: "Code" },
-  { id: "preview", title: "Live Preview", dockMode: "split-right" },
-  { id: "configuration", title: "Python Trace Configuration", dockMode: "split-bottom" },
-  { id: "timeline", title: "Playback & Diagnostics", dockMode: "split-bottom" },
-]);
-
 function readStoredText(key, fallback) {
   try {
     return window.localStorage.getItem(key) ?? fallback;
@@ -298,7 +289,6 @@ export default function RuntimePlayground({
     message: "Checking for browser agent support...",
     lastAction: null,
   });
-  const [panelDivs, setPanelDivs] = useState(null);
   const requestVersionRef = useRef(0);
   const suggestionVersionRef = useRef(0);
   const debounceRef = useRef(null);
@@ -1315,11 +1305,6 @@ export default function RuntimePlayground({
       </header>
 
       <main className="runtime-playground__workspace">
-        <LuminoDockPanel
-          panels={PLAYGROUND_DOCK_PANELS}
-          onPanelReady={setPanelDivs}
-        />
-        {panelDivs?.editor && createPortal(
         <section className="runtime-playground__panel runtime-playground__editor-panel">
           <div className="runtime-playground__panel-header">
             <div>
@@ -1387,12 +1372,8 @@ export default function RuntimePlayground({
             <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run and play</span>
             <span>{source.length.toLocaleString()} / {MAX_SOURCE_LENGTH.toLocaleString()}</span>
           </div>
-        </section>,
-        panelDivs.editor,
-        "runtime-playground-editor",
-        )}
+        </section>
 
-        {panelDivs?.preview && createPortal(
         <section className="runtime-playground__panel runtime-playground__preview-panel">
           <div className="runtime-playground__panel-header">
             <div>
@@ -1418,12 +1399,8 @@ export default function RuntimePlayground({
               }
             />
           </div>
-        </section>,
-        panelDivs.preview,
-        "runtime-playground-preview",
-        )}
+        </section>
 
-        {panelDivs?.configuration && createPortal(
         <section className="runtime-playground__panel runtime-playground__configuration-panel">
           <PlaygroundAIProviderControls />
           {isPython ? (
@@ -1450,12 +1427,8 @@ export default function RuntimePlayground({
               Switch the Code panel to Python to configure traced inputs and visuals.
             </div>
           )}
-        </section>,
-        panelDivs.configuration,
-        "runtime-playground-configuration",
-        )}
+        </section>
 
-        {panelDivs?.timeline && createPortal(
         <section className="runtime-playground__panel runtime-playground__timeline-panel">
           <div className="runtime-playground__playback">
             <PlaybackControls
@@ -1562,10 +1535,7 @@ export default function RuntimePlayground({
               </>
             )}
           </div>
-        </section>,
-        panelDivs.timeline,
-        "runtime-playground-timeline",
-        )}
+        </section>
       </main>
     </div>
   );

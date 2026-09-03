@@ -3,7 +3,7 @@
   flex: 1 1 0;
   width: 100%;
   min-width: 0;
-  min-height: 0;
+  min-height: 100vh;
   margin: 0 auto;
   overflow: hidden;
   display: flex;
@@ -235,24 +235,14 @@
 }
 
 .runtime-playground__workspace {
-  position: relative;
+  display: grid;
+  grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.25fr);
+  grid-template-rows: minmax(420px, 1fr) minmax(260px, 0.62fr);
+  gap: var(--playground-gap);
   flex: 1 1 0;
   min-height: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.runtime-playground__workspace > .lumino-dock-container {
-  inset: var(--playground-gap);
-}
-
-.runtime-playground__workspace .lumino-panel-widget .runtime-playground__panel {
-  width: 100%;
-  height: 100%;
-  flex: 1 1 auto;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+  padding: var(--playground-gap);
+  overflow: auto;
 }
 
 .runtime-playground__panel {
@@ -270,6 +260,16 @@
 .runtime-playground__configuration-panel {
   display: flex;
   flex-direction: column;
+}
+
+.runtime-playground__editor-panel {
+  grid-row: 1 / span 2;
+}
+
+.runtime-playground__preview-panel,
+.runtime-playground__configuration-panel,
+.runtime-playground__timeline-panel {
+  min-height: 0;
 }
 
 .runtime-playground__panel-header {
@@ -1053,6 +1053,21 @@
 @media (max-width: 980px) {
   .runtime-playground__header {
     padding-top: 58px;
+  }
+
+  .runtime-playground__workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    overflow: visible;
+  }
+
+  .runtime-playground__editor-panel {
+    grid-row: auto;
+    min-height: 560px;
+  }
+
+  .runtime-playground__preview-panel {
+    min-height: 420px;
   }
 
   .runtime-playground__timeline-panel {
