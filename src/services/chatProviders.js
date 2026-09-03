@@ -9,18 +9,22 @@ export function defaultChatModel(provider = 'ollama-local') {
 }
 
 export function getChatProvider() {
+  const fallbackProvider = canUseLocalOllama() ? 'ollama-local' : 'ollama-cloud'
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY))
     if (stored && typeof stored === 'object') {
+      const provider = stored.provider === 'ollama-local' && !canUseLocalOllama()
+        ? 'ollama-cloud'
+        : stored.provider || fallbackProvider
       return {
-        provider: stored.provider || 'ollama-local',
-        model: stored.model || defaultChatModel(stored.provider),
+        provider,
+        model: provider === stored.provider && stored.model ? stored.model : defaultChatModel(provider),
       }
     }
   } catch {
-    // Fall through to the local provider default.
+    // Fall through to the environment-aware default.
   }
-  return { provider: 'ollama-local', model: defaultChatModel('ollama-local') }
+  return { provider: fallbackProvider, model: defaultChatModel(fallbackProvider) }
 }
 
 export function setChatProvider(value) {
@@ -53,11 +57,20 @@ export function subscribeChatProvider(listener) {
 
 export async function* streamProviderChat(messages, config = getChatProvider()) {
   if (config.provider === 'ollama-local') {
+    if (!canUseLocalOllama()) {
+      throw new Error('Local Ollama is only available when this page is running on localhost. On the hosted app, use Ollama Cloud with a Vercel OLLAMA_API_KEY or enter an API key in the provider panel.')
+    }
     yield* streamLocalOllama(messages, config)
     return
   }
 
-  throw new Error('This standalone build can use Ollama Local for AI suggestions. Cloud providers need a hosted /api/chat proxy.')
+  yield* streamHostedProxy(messages, config)
+}
+
+export function canUseLocalOllama() {
+  if (typeof window === 'undefined') return true
+  const host = window.location.hostname
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1'
 }
 
 function assertSmallRequest(body) {
@@ -109,6 +122,54 @@ async function* streamLocalOllama(messages, config) {
       }
       if (json?.error) throw new Error(String(json.error))
       const delta = json?.message?.content || json?.response || ''
+      if (delta) yield delta
+    }
+  }
+}
+
+async function* streamHostedProxy(messages, config) {
+  const body = {
+    provider: config.provider,
+    model: config.model || defaultChatModel(config.provider),
+    ollamaApiKey: config.ollamaApiKey || '',
+    geminiApiKey: config.geminiApiKey || '',
+    messages,
+  }
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: assertSmallRequest(body),
+  })
+  if (!response.ok) {
+    const detail = (await response.text()).trim()
+    throw new Error(detail || `AI proxy returned ${response.status}`)
+  }
+  if (!response.body) throw new Error('AI proxy did not return a streaming response.')
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop()
+    for (const line of lines) {
+      const text = line.replace(/^data:\s*/, '').trim()
+      if (!text || text === '[DONE]') continue
+      let json
+      try {
+        json = JSON.parse(text)
+      } catch {
+        yield text
+        continue
+      }
+      if (json?.error) throw new Error(String(json.error))
+      const delta = json?.message?.content
+        || json?.response
+        || json?.candidates?.[0]?.content?.parts?.[0]?.text
+        || ''
       if (delta) yield delta
     }
   }

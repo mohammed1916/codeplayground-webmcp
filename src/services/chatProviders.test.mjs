@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { streamProviderChat } from "./chatProviders.js";
+import { canUseLocalOllama, streamProviderChat } from "./chatProviders.js";
 
 function streamFromText(text) {
   const encoder = new TextEncoder();
@@ -66,16 +66,50 @@ test("huge AI requests fail before hitting fetch", async () => {
   }
 });
 
-test("cloud providers explain that the standalone build needs a proxy", async () => {
-  await assert.rejects(
-    async () => {
-      for await (const _delta of streamProviderChat(
-        [{ role: "user", text: "make inputs" }],
-        { provider: "gemini", model: "gemini-2.5-flash" },
-      )) {
-        // Exhaust the stream.
-      }
-    },
-    /hosted \/api\/chat proxy/i,
-  );
+test("cloud providers stream through the hosted proxy", async () => {
+  let request;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    request = { url, init };
+    return new Response(streamFromText('{"message":{"content":"ok"}}\n'));
+  };
+
+  try {
+    let response = "";
+    for await (const delta of streamProviderChat(
+      [{ role: "user", text: "make inputs" }],
+      { provider: "gemini", model: "gemini-2.5-flash", geminiApiKey: "test-key" },
+    )) {
+      response += delta;
+    }
+
+    assert.equal(request.url, "/api/chat");
+    assert.equal(JSON.parse(request.init.body).provider, "gemini");
+    assert.equal(response, "ok");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("hosted pages do not attempt local Ollama requests", async () => {
+  const previousWindow = globalThis.window;
+  globalThis.window = { location: { hostname: "codeplaygroundwebmcp.vercel.app" } };
+
+  try {
+    assert.equal(canUseLocalOllama(), false);
+    await assert.rejects(
+      async () => {
+        for await (const _delta of streamProviderChat(
+          [{ role: "user", text: "make inputs" }],
+          { provider: "ollama-local", model: "test-model" },
+        )) {
+          // Exhaust the stream.
+        }
+      },
+      /localhost/i,
+    );
+  } finally {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  }
 });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  canUseLocalOllama,
   getChatProvider,
   setChatProvider,
   subscribeChatProvider,
@@ -38,12 +39,17 @@ export default function PlaygroundAIProviderControls() {
     readSessionValue("chat.gemini-api-key")
   ));
   const [localModels, setLocalModels] = useState([]);
-  const [localStatus, setLocalStatus] = useState("checking");
+  const [localStatus, setLocalStatus] = useState(() => (
+    canUseLocalOllama() ? "checking" : "hosted"
+  ));
 
   useEffect(() => subscribeChatProvider(setConfig), []);
 
   useEffect(() => {
     if (config.provider !== "ollama-local") return undefined;
+    if (!canUseLocalOllama()) {
+      return undefined;
+    }
     const controller = new AbortController();
     fetch("http://127.0.0.1:11434/api/tags", { signal: controller.signal })
       .then((response) => {
@@ -173,10 +179,12 @@ export default function PlaygroundAIProviderControls() {
         {config.provider === "ollama-local"
           ? localStatus === "ready"
             ? <><strong className="runtime-playground__ollama-ready">Ollama detected.</strong><span> {localModels.length} installed model{localModels.length === 1 ? "" : "s"}; </span><code>{config.model || selected.model}</code><span>{localModels.includes(config.model || selected.model) ? " is available." : " is not installed yet."}</span></>
+            : localStatus === "hosted"
+              ? "Local Ollama only works on localhost. Use Ollama Cloud on the hosted site."
             : localStatus === "unavailable"
               ? <><strong className="runtime-playground__ollama-unavailable">Ollama not detected.</strong><span> Run </span><code>ollama run {config.model || selected.model}</code><span>, then reopen this panel.</span></>
               : "Checking http://127.0.0.1:11434 for installed models..."
-          : "Keys are kept in session storage and sent only through the existing chat proxy."}
+          : "Uses the hosted /api/chat proxy. Prefer Vercel environment keys; entered keys stay in session storage and are sent only to this app."}
       </p>
       </div>
       </div>

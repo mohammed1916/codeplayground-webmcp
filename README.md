@@ -24,6 +24,19 @@ npm run dev
 
 Open `http://localhost:5173/`. In a WebMCP-capable browser or ChatGPT in-app browser, the header should show `Agent-ready`.
 
+## Hosted AI providers
+
+Local Ollama only works when the app runs on `localhost`; hosted browsers cannot reliably call `127.0.0.1:11434` because of browser CORS rules. On Vercel, use the included `/api/chat` proxy and set one or both environment variables:
+
+```bash
+OLLAMA_API_KEY=...
+GEMINI_API_KEY=...
+```
+
+If your Ollama Cloud account uses a custom compatible base URL, also set `OLLAMA_BASE_URL`; the default is `https://ollama.com/api`.
+
+You can also enter a key in the provider panel during a session, but Vercel environment variables are better for demos.
+
 ## Verification
 
 ```bash
