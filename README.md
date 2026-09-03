@@ -37,6 +37,12 @@ If your Ollama Cloud account uses a custom compatible base URL, also set `OLLAMA
 
 You can also enter a key in the provider panel during a session, but Vercel environment variables are better for demos.
 
+## License
+
+Copyright (C) 2026 Mohammed Abdullah <2023176026@student.annauniv.edu>
+
+Licensed under the GNU Affero General Public License v3.0 or later. See [LICENSE](./LICENSE).
+
 ## Verification
 
 ```bash
