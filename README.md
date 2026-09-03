@@ -7,7 +7,7 @@ A standalone WebMCP-enabled algorithm visualization playground. The app opens di
 
 Demo: [www.youtube.com/watch?v=ZDfXHrO67Dc](https://www.youtube.com/watch?v=ZDfXHrO67Dc)
 
-Extended Demo: [youtu.be/BrXhr0kSsKs](https://youtu.be/BrXhr0kSsKs)
+Extended Silent Walkthrough: [youtu.be/BrXhr0kSsKs](https://youtu.be/BrXhr0kSsKs) (for Fix with AI/Propose code)
 
 ## WebMCP tools
 
