@@ -1,0 +1,35 @@
+{
+  "name": "codeplayground-webmcp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "test:playground-python": "node --test src/playground/runtime/python/pythonTraceSemantics.test.mjs src/playground/runtime/normalizePythonSource.test.mjs src/playground/runtime/inferPythonInput.test.mjs src/playground/ai/suggestPythonBindings.test.mjs",
+    "test:webmcp": "node --test src/playground/webmcp/playgroundWebMCP.test.mjs",
+    "test": "npm run test:webmcp && npm run test:playground-python"
+  },
+  "dependencies": {
+    "@lumino/messaging": "^2.0.5",
+    "@lumino/widgets": "^2.9.0",
+    "@monaco-editor/react": "^4.7.0",
+    "framer-motion": "^12.38.0",
+    "pyodide": "^314.0.6",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "vite": "^8.0.10"
+  }
+}

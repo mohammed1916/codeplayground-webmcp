@@ -1,0 +1,278 @@
+/* Import Lumino's structural widget styles (positioning, layout, resize handles) */
+@import '@lumino/widgets/style/index.css';
+
+/* Local tokens so the divider highlight is bright regardless of the faint --border */
+.lumino-dock-container {
+  --lm-divider: var(--border); /* clearly visible slate divider */
+  --lm-divider-hover: var(--info, var(--primary)); /* bright cyan on hover */
+  --lm-panel-border: var(--border);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* ── Dock panel background ─────────────────────────── */
+.lm-DockPanel {
+  background: var(--surface, var(--surface));
+  color: var(--text, var(--text));
+}
+
+/* ── Each panel gets a visible border so its bounds are clear ── */
+.lumino-panel-widget {
+  min-width: 180px;
+  min-height: 96px;
+  border: 1px solid var(--lm-panel-border);
+  border-radius: 8px;
+  background: var(--surface, var(--surface));
+}
+
+.lumino-panel-widget > [data-panel-id] {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.lumino-panel-widget > [data-panel-id].is-closing {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+.lumino-panel-widget > [data-panel-id].is-opening {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Status is deliberately dense: the message is visible without taking space
+   away from the code trace or the animation. */
+.lumino-inline-status {
+  flex: 0 0 auto;
+  overflow: visible;
+  border-bottom: 1px solid var(--lm-panel-border);
+  background: var(--surface2);
+}
+
+.lumino-code-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.lumino-code-content > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ── Per-panel minimize/restore button (top-right corner) ── */
+.lumino-panel-minbtn {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  z-index: 5;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  color: var(--text-muted, var(--text-muted));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.lumino-panel-minbtn:hover {
+  background: var(--overlay-medium);
+  color: var(--text);
+  border-color: var(--lm-panel-border);
+}
+
+.lumino-panel-minbtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.lumino-panel-minbtn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 180ms ease;
+}
+
+.lumino-panel-widget.is-collapsed .lumino-panel-minbtn svg {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lumino-panel-widget > [data-panel-id],
+  .lumino-panel-minbtn svg {
+    transition: none;
+  }
+}
+
+/* ── Resize handles: always visible, high-contrast ── */
+.lm-DockPanel-handle {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Bright center line on each handle so the divider always reads */
+.lm-DockPanel-handle[data-orientation='horizontal'] {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--lm-divider) 30%,
+    var(--lm-divider) 70%,
+    transparent 100%
+  );
+}
+
+.lm-DockPanel-handle[data-orientation='vertical'] {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--lm-divider) 30%,
+    var(--lm-divider) 70%,
+    transparent 100%
+  );
+}
+
+/* Bright accent + glow on hover so it's obvious the divider is draggable */
+.lm-DockPanel-handle:hover {
+  background: var(--lm-divider-hover) !important;
+  box-shadow: 0 0 8px 1px var(--primary-glow);
+}
+
+/* ── Tab bars ──────────────────────────────────────── */
+/* The structural Lumino CSS gives tabs NO height (that normally comes from the
+   default-theme package, which isn't installed). Without an explicit height,
+   DockLayout allocates 0px for the tab bar and the tabs are invisible. So we
+   set concrete heights here — this is what makes the draggable tabs appear. */
+.lm-DockPanel-tabBar {
+  background: var(--surface2, var(--surface2));
+  min-height: 36px;
+}
+
+.lm-TabBar {
+  background: var(--surface2, var(--surface2));
+  border-bottom: 1px solid var(--lm-panel-border);
+  min-height: 36px;
+}
+
+.lm-TabBar-content {
+  min-height: 36px;
+}
+
+.lm-TabBar-tab {
+  height: 36px;
+  padding: 0 16px;
+  align-items: center;
+  color: var(--text-muted, var(--text-muted));
+  background: var(--surface2, var(--surface2));
+  border-right: 1px solid var(--lm-panel-border);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.lm-TabBar-tabLabel,
+.lm-TabBar-tab * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lm-TabBar-tab::before {
+  content: '⠿';
+  margin-right: 7px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+}
+
+.lm-TabBar-tab:active::before {
+  cursor: grabbing;
+}
+
+.lm-TabBar-tab:hover {
+  background: var(--surface3, var(--surface3));
+  color: var(--text, var(--text));
+}
+
+/* Active tab: strong highlight bar + surface change */
+.lm-TabBar-tab.lm-mod-current {
+  color: var(--text, var(--text));
+  background: var(--surface, var(--surface));
+  border-bottom-color: var(--info, var(--primary));
+}
+
+.lm-TabBar-tabLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 36px;
+}
+
+.lm-TabBar-tabCloseIcon {
+  margin-left: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lm-TabBar-tabCloseIcon:hover {
+  background: var(--error-glow);
+}
+
+.lm-TabBar-tabCloseIcon:before {
+  content: '×';
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-muted, var(--text-muted));
+}
+
+.lm-TabBar-tabCloseIcon:hover:before {
+  color: var(--error, var(--error));
+}
+
+/* ── Drag overlay (drop zone indicator) ────────────── */
+.lm-DockPanel-overlay {
+  background: var(--primary-glow);
+  border: 2px solid var(--info, var(--primary));
+  border-radius: 6px;
+}
+
+/* ── Custom scrollbars in panels ───────────────────── */
+.lumino-panel-widget ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.lumino-panel-widget ::-webkit-scrollbar-track {
+  background: var(--surface2, var(--surface2));
+}
+
+.lumino-panel-widget ::-webkit-scrollbar-thumb {
+  background: var(--lm-divider);
+  border-radius: 4px;
+}
+
+.lumino-panel-widget ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted, var(--text-muted));
+}
