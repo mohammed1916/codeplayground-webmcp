@@ -51,6 +51,7 @@ export default function PlaygroundAIProviderControls() {
       return undefined;
     }
     const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 2500);
     fetch("http://127.0.0.1:11434/api/tags", { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error(`Ollama returned ${response.status}`);
@@ -64,11 +65,14 @@ export default function PlaygroundAIProviderControls() {
         setLocalStatus("ready");
       })
       .catch((error) => {
-        if (error?.name === "AbortError") return;
+        if (error?.name === "AbortError" && controller.signal.reason === "unmount") return;
         setLocalModels([]);
         setLocalStatus("unavailable");
       });
-    return () => controller.abort();
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort("unmount");
+    };
   }, [config.provider]);
 
   const updateConfig = (nextConfig) => {
@@ -77,6 +81,9 @@ export default function PlaygroundAIProviderControls() {
   };
   const selected = PROVIDERS.find((provider) => provider.value === config.provider)
     ?? PROVIDERS[0];
+  const effectiveLocalStatus = config.provider === "ollama-local" && !canUseLocalOllama()
+    ? "hosted"
+    : localStatus;
 
   return (
     <section className="runtime-playground__ai-provider" aria-label="AI visual provider">
@@ -110,7 +117,9 @@ export default function PlaygroundAIProviderControls() {
             onChange={(event) => {
               const provider = PROVIDERS.find((item) => item.value === event.target.value)
                 ?? PROVIDERS[0];
-              if (provider.value === "ollama-local") setLocalStatus("checking");
+              if (provider.value === "ollama-local") {
+                setLocalStatus(canUseLocalOllama() ? "checking" : "hosted");
+              }
               updateConfig({ provider: provider.value, model: provider.model });
             }}
           >
@@ -177,14 +186,14 @@ export default function PlaygroundAIProviderControls() {
 
       <p>
         {config.provider === "ollama-local"
-          ? localStatus === "ready"
+          ? effectiveLocalStatus === "ready"
             ? <><strong className="runtime-playground__ollama-ready">Ollama detected.</strong><span> {localModels.length} installed model{localModels.length === 1 ? "" : "s"}; </span><code>{config.model || selected.model}</code><span>{localModels.includes(config.model || selected.model) ? " is available." : " is not installed yet."}</span></>
-            : localStatus === "hosted"
-              ? "Local Ollama only works on localhost. Use Ollama Cloud on the hosted site."
-            : localStatus === "unavailable"
+            : effectiveLocalStatus === "hosted"
+              ? "Local Ollama is only available when running this app on your own computer. Use Ollama Cloud or Gemini here."
+            : effectiveLocalStatus === "unavailable"
               ? <><strong className="runtime-playground__ollama-unavailable">Ollama not detected.</strong><span> Run </span><code>ollama run {config.model || selected.model}</code><span>, then reopen this panel.</span></>
-              : "Checking http://127.0.0.1:11434 for installed models..."
-          : "Uses the hosted /api/chat proxy. Prefer Vercel environment keys; entered keys stay in session storage and are sent only to this app."}
+              : "Checking for Ollama on this computer..."
+          : "AI suggestions are ready. If the hosted demo has no saved key, enter your API key for this session."}
       </p>
       </div>
       </div>
