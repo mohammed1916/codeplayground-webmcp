@@ -10,6 +10,7 @@ const KIND_OPTIONS = [
   { value: "heap", label: "Heap" },
   { value: "scalar", label: "Scalar" },
 ];
+const AI_INPUT_PROMPT_MAX_LENGTH = 4_000;
 
 const SEQUENCE_VIEWS = [
   { value: "cells", label: "Cells" },
@@ -194,6 +195,7 @@ export default function PythonTraceControls({
               id="runtime-playground-python-input-prompt"
               value={aiInputPrompt}
               onChange={(event) => setAiInputPrompt(event.target.value)}
+              maxLength={AI_INPUT_PROMPT_MAX_LENGTH}
               placeholder="Example: Three sorted linked lists with duplicates and negative values"
               spellCheck={false}
               disabled={disabled || isSuggestingVisuals}

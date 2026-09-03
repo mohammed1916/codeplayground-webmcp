@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test:playground-python": "node --test src/playground/runtime/python/pythonTraceSemantics.test.mjs src/playground/runtime/normalizePythonSource.test.mjs src/playground/runtime/inferPythonInput.test.mjs src/playground/ai/suggestPythonBindings.test.mjs",
     "test:webmcp": "node --test src/playground/webmcp/playgroundWebMCP.test.mjs",
-    "test": "npm run test:webmcp && npm run test:playground-python"
+    "test:providers": "node --test src/services/chatProviders.test.mjs",
+    "test": "npm run test:webmcp && npm run test:playground-python && npm run test:providers"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

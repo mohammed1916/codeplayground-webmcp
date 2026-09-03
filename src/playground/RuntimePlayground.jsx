@@ -865,7 +865,7 @@ export default function RuntimePlayground({
       if (suggestionVersion !== suggestionVersionRef.current) return;
       setAiVisualState({
         phase: "error",
-        message: `${errorMessage(error)} Check the AI provider in the assistant settings.`,
+        message: `${errorMessage(error)} Check the AI visual provider settings.`,
       });
     }
   }, [

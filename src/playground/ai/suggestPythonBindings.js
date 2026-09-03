@@ -11,12 +11,16 @@ const ALLOWED_KINDS = new Set([
   "associative",
   "graph",
   "tree",
+  "heap",
   "scalar",
 ]);
 const ALLOWED_VIEWS = new Set(["cells", "bars", "line"]);
 const ALLOWED_ROLES = new Set(["value", "pointer"]);
 const ALLOWED_POINTER_MODES = new Set(["index", "value"]);
 const MAX_RESPONSE_LENGTH = 60_000;
+const MAX_INPUT_CONTEXT_LENGTH = 8_000;
+const MAX_INSTRUCTION_LENGTH = 4_000;
+const MAX_SOURCE_CONTEXT_LENGTH = 35_000;
 
 function isPlainObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -39,6 +43,12 @@ function providerLabel(config) {
   if (config.provider === "gemini") return "Gemini";
   if (config.provider === "ollama-cloud") return "Ollama Cloud";
   return "Ollama Local";
+}
+
+function clipForPrompt(value, maxLength, label) {
+  const text = String(value || "");
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}\n\n[${label} truncated: ${text.length - maxLength} more characters omitted.]`;
 }
 
 function latestSamples(traceResult, variables) {
@@ -106,10 +116,10 @@ Rules:
 
 Entry: ${entry || traceResult?.entry?.displayName || "auto-detected"}
 Inputs JSON:
-${String(inputSource || "null").slice(0, 8_000)}
+${clipForPrompt(inputSource || "null", MAX_INPUT_CONTEXT_LENGTH, "inputs")}
 
 Python source:
-${String(source || "").slice(0, 35_000)}
+${clipForPrompt(source || "", MAX_SOURCE_CONTEXT_LENGTH, "source")}
 
 Traced variable catalog and latest samples:
 ${JSON.stringify(traceSummary)}
@@ -248,13 +258,13 @@ Rules:
 
 Requested entry: ${entry || "auto-detected"}
 Current inputs, which may be incomplete or invalid:
-${String(inputSource || "null").slice(0, 8_000)}
+${clipForPrompt(inputSource || "null", MAX_INPUT_CONTEXT_LENGTH, "inputs")}
 
 User request for this test case:
-${String(instruction || "Choose a small representative case.").slice(0, 4_000)}
+${clipForPrompt(instruction || "Choose a small representative case.", MAX_INSTRUCTION_LENGTH, "request")}
 
 Python source:
-${String(source || "").slice(0, 35_000)}`,
+${clipForPrompt(source || "", MAX_SOURCE_CONTEXT_LENGTH, "source")}`,
     },
   ];
 }
