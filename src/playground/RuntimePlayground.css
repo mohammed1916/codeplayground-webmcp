@@ -237,7 +237,7 @@
 .runtime-playground__workspace {
   display: grid;
   grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.25fr);
-  grid-template-rows: minmax(420px, 1fr) minmax(260px, 0.62fr);
+  grid-template-rows: minmax(390px, 0.95fr) minmax(320px, 0.75fr);
   gap: var(--playground-gap);
   flex: 1 1 0;
   min-height: 0;
@@ -270,6 +270,10 @@
 .runtime-playground__configuration-panel,
 .runtime-playground__timeline-panel {
   min-height: 0;
+}
+
+.runtime-playground__configuration-panel {
+  min-height: 620px;
 }
 
 .runtime-playground__panel-header {
@@ -363,6 +367,8 @@
 
 .runtime-playground__ai-provider {
   flex: 0 0 auto;
+  max-height: min(360px, 42vh);
+  overflow: auto;
   padding: 9px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
@@ -417,6 +423,22 @@
   background: var(--primary-glow);
   color: var(--primary);
   font-size: 0.62rem;
+}
+
+.runtime-playground__ai-provider-toggle {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--surface2);
+  font-size: 0.61rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 5px;
 }
 
 .runtime-playground__ai-provider-chevron {

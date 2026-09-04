@@ -36,7 +36,7 @@ function isHostedPage() {
 
 export default function PlaygroundAIProviderControls() {
   const [config, setConfig] = useState(getChatProvider);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [ollamaApiKey, setOllamaApiKey] = useState(() => (
     readSessionValue("chat.ollama-api-key")
   ));
@@ -106,7 +106,10 @@ export default function PlaygroundAIProviderControls() {
           <small>Used by Suggest visuals; deterministic tracing does not require AI.</small>
         </span>
         <code>{selected.label}</code>
-        <span className="runtime-playground__ai-provider-chevron" aria-hidden="true">⌄</span>
+        <span className="runtime-playground__ai-provider-toggle">
+          {isExpanded ? "Hide settings" : "Show settings"}
+          <span className="runtime-playground__ai-provider-chevron" aria-hidden="true">⌄</span>
+        </span>
       </button>
 
       <div
@@ -180,24 +183,6 @@ export default function PlaygroundAIProviderControls() {
           </label>
         )}
 
-        {config.provider === "ollama-local" && isHosted && (
-          <label htmlFor="runtime-playground-ollama-hosted-local">
-            Hosted access
-            <span>
-              <input
-                id="runtime-playground-ollama-hosted-local"
-                type="checkbox"
-                checked={Boolean(config.allowHostedLocal)}
-                onChange={(event) => updateConfig({
-                  ...config,
-                  allowHostedLocal: event.target.checked,
-                })}
-              />
-              Try Local Ollama from this hosted page
-            </span>
-          </label>
-        )}
-
         {config.provider === "ollama-cloud" && (
           <label htmlFor="runtime-playground-ollama-key">
             API key
@@ -236,7 +221,7 @@ export default function PlaygroundAIProviderControls() {
           ? effectiveLocalStatus === "ready"
             ? <><strong className="runtime-playground__ollama-ready">Ollama detected.</strong><span> {localModels.length} installed model{localModels.length === 1 ? "" : "s"}; </span><code>{config.model || selected.model}</code><span>{localModels.includes(config.model || selected.model) ? " is available." : " is not installed yet."}</span></>
             : effectiveLocalStatus === "manual"
-              ? "Local Ollama can be used from the hosted app if Ollama is running on your computer and allows this site. If it fails, use Ollama Cloud or Gemini."
+              ? "To use Local Ollama from this hosted page, run the setup commands below, restart Ollama, then try again."
             : effectiveLocalStatus === "unavailable"
               ? <><strong className="runtime-playground__ollama-unavailable">Ollama not detected.</strong><span> Run </span><code>ollama run {config.model || selected.model}</code><span>, then reopen this panel.</span></>
               : "Checking for Ollama on this computer..."
@@ -264,7 +249,7 @@ export default function PlaygroundAIProviderControls() {
               </li>
               {isHosted && (
                 <li>
-                  Allow this hosted site in Ollama, then restart Ollama:
+                  Allow this hosted site in Ollama:
                   <code>setx OLLAMA_ORIGINS "{appOrigin}"</code>
                 </li>
               )}
@@ -275,7 +260,7 @@ export default function PlaygroundAIProviderControls() {
             </ol>
             {isHosted && (
               <p>
-                After restarting Ollama, enable “Try Local Ollama from this hosted page.” Judges must do the same on their own computer, so Ollama Cloud or Gemini is safer for zero-setup judging.
+                After setting the origin, fully quit and reopen Ollama, then retry Local Ollama in this app.
               </p>
             )}
           </div>

@@ -106,43 +106,13 @@ test("hosted pages may still attempt local Ollama when explicitly selected", asy
     let response = "";
     for await (const delta of streamProviderChat(
       [{ role: "user", text: "make inputs" }],
-      { provider: "ollama-local", model: "test-model", allowHostedLocal: true },
+      { provider: "ollama-local", model: "test-model" },
     )) {
       response += delta;
     }
 
     assert.equal(request.url, "http://127.0.0.1:11434/api/chat");
     assert.equal(response, "ok");
-  } finally {
-    if (previousWindow === undefined) delete globalThis.window;
-    else globalThis.window = previousWindow;
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("hosted pages block loopback Ollama until hosted local access is enabled", async () => {
-  const previousWindow = globalThis.window;
-  const originalFetch = globalThis.fetch;
-  let called = false;
-  globalThis.window = { location: { hostname: "codeplaygroundwebmcp.vercel.app" } };
-  globalThis.fetch = async () => {
-    called = true;
-    throw new Error("fetch should not run");
-  };
-
-  try {
-    await assert.rejects(
-      async () => {
-        for await (const _delta of streamProviderChat(
-          [{ role: "user", text: "make inputs" }],
-          { provider: "ollama-local", model: "test-model" },
-        )) {
-          // Exhaust the stream.
-        }
-      },
-      /hosted app needs browser access/i,
-    );
-    assert.equal(called, false);
   } finally {
     if (previousWindow === undefined) delete globalThis.window;
     else globalThis.window = previousWindow;

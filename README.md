@@ -59,7 +59,7 @@ Then fully restart Ollama. If Ollama is not already running:
 ollama serve
 ```
 
-In the app, select `Ollama Local`, then enable `Try Local Ollama from this hosted page`.
+In the app, select `Ollama Local` and retry after Ollama restarts.
 
 ## License
 

@@ -19,7 +19,6 @@ export function getChatProvider() {
         provider,
         model: stored.model || defaultChatModel(provider),
         localBaseUrl: stored.localBaseUrl || DEFAULT_LOCAL_OLLAMA_URL,
-        allowHostedLocal: Boolean(stored.allowHostedLocal),
       }
     }
   } catch {
@@ -29,7 +28,6 @@ export function getChatProvider() {
     provider: fallbackProvider,
     model: defaultChatModel(fallbackProvider),
     localBaseUrl: DEFAULT_LOCAL_OLLAMA_URL,
-    allowHostedLocal: false,
   }
 }
 
@@ -38,7 +36,6 @@ export function setChatProvider(value) {
     provider: value?.provider || 'ollama-local',
     model: value?.model || defaultChatModel(value?.provider),
     localBaseUrl: value?.localBaseUrl || DEFAULT_LOCAL_OLLAMA_URL,
-    allowHostedLocal: Boolean(value?.allowHostedLocal),
   }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
@@ -90,23 +87,8 @@ function normalizeOllamaBaseUrl(value) {
   return String(value || DEFAULT_LOCAL_OLLAMA_URL).trim().replace(/\/+$/, '')
 }
 
-function isLoopbackOllamaUrl(value) {
-  try {
-    const url = new URL(normalizeOllamaBaseUrl(value))
-    return url.hostname === '127.0.0.1'
-      || url.hostname === 'localhost'
-      || url.hostname === '[::1]'
-      || url.hostname === '::1'
-  } catch {
-    return true
-  }
-}
-
 async function* streamLocalOllama(messages, config) {
   const baseUrl = normalizeOllamaBaseUrl(config.localBaseUrl)
-  if (!canUseLocalOllama() && isLoopbackOllamaUrl(baseUrl) && !config.allowHostedLocal) {
-    throw new Error('Local Ollama from the hosted app needs browser access to your computer. Enable the hosted Local Ollama option after starting Ollama with CORS for this site, or use Ollama Cloud/Gemini.')
-  }
   const body = {
     model: config.model || defaultChatModel('ollama-local'),
     stream: true,
