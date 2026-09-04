@@ -270,6 +270,12 @@ class Solution:
   assert.equal(listsContainer.category, 'node-link')
   assert.ok(listsContainer.nodes.every((item) => typeof item.label === 'number'))
   assert.ok(listsContainer.edges.length > 0)
+  const returnContainer = compiled.frames.map((frame) => container(frame, '$return')).find((item) => item?.items?.length)
+  assert.equal(returnContainer.category, 'sequence')
+  assert.deepEqual(
+    returnContainer.items.map((item) => item.value),
+    [1, 1, 2, 3, 4, 4, 5, 6],
+  )
   const heapContainers = compiled.frames.map((frame) => container(frame, 'heap')).filter(Boolean)
   const heapText = JSON.stringify(heapContainers.flatMap((item) => item.items))
   assert.doesNotMatch(heapText, /__class__/)

@@ -262,6 +262,16 @@ function normalizeBindings(bindings, variables) {
 }
 
 function createContainer({ binding, id, value, previous, runtimeType, changed }) {
+  if (binding.name === '$return' && isLinkedListNode(value)) {
+    return createSequenceContainer(
+      { ...binding, view: binding.view || 'cells' },
+      id,
+      linkedListToArray(value),
+      isLinkedListNode(previous) ? linkedListToArray(previous) : previous,
+      'list',
+      changed,
+    )
+  }
   if (binding.kind === 'graph' || binding.kind === 'tree' || binding.kind === 'heap') {
     return createNodeLinkContainer(binding, id, value, previous, changed)
   }
@@ -563,6 +573,19 @@ function buildLinkedListData(value, id) {
     }
   })
   return { nodes, edges, directed: true, layout: heads.length > 1 ? 'tree' : 'linear' }
+}
+
+function linkedListToArray(head) {
+  const values = []
+  const seen = new Set()
+  let current = head
+  while (isLinkedListNode(current) && values.length < RUNTIME_LIMITS.maxSequenceItems) {
+    if (seen.has(current)) break
+    seen.add(current)
+    values.push(cloneJsonValue(current.val))
+    current = current.next
+  }
+  return values
 }
 
 function buildTreeData(value, id, binding) {
