@@ -91,25 +91,31 @@ test("cloud providers stream through the hosted proxy", async () => {
   }
 });
 
-test("hosted pages do not attempt local Ollama requests", async () => {
+test("hosted pages may still attempt local Ollama when explicitly selected", async () => {
   const previousWindow = globalThis.window;
+  const originalFetch = globalThis.fetch;
+  let request;
   globalThis.window = { location: { hostname: "codeplaygroundwebmcp.vercel.app" } };
+  globalThis.fetch = async (url, init) => {
+    request = { url, init };
+    return new Response(streamFromText('{"message":{"content":"ok"}}\n'));
+  };
 
   try {
     assert.equal(canUseLocalOllama(), false);
-    await assert.rejects(
-      async () => {
-        for await (const _delta of streamProviderChat(
-          [{ role: "user", text: "make inputs" }],
-          { provider: "ollama-local", model: "test-model" },
-        )) {
-          // Exhaust the stream.
-        }
-      },
-      /localhost/i,
-    );
+    let response = "";
+    for await (const delta of streamProviderChat(
+      [{ role: "user", text: "make inputs" }],
+      { provider: "ollama-local", model: "test-model" },
+    )) {
+      response += delta;
+    }
+
+    assert.equal(request.url, "http://127.0.0.1:11434/api/chat");
+    assert.equal(response, "ok");
   } finally {
     if (previousWindow === undefined) delete globalThis.window;
     else globalThis.window = previousWindow;
+    globalThis.fetch = originalFetch;
   }
 });

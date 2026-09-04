@@ -13,12 +13,10 @@ export function getChatProvider() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY))
     if (stored && typeof stored === 'object') {
-      const provider = stored.provider === 'ollama-local' && !canUseLocalOllama()
-        ? 'ollama-cloud'
-        : stored.provider || fallbackProvider
+      const provider = stored.provider || fallbackProvider
       return {
         provider,
-        model: provider === stored.provider && stored.model ? stored.model : defaultChatModel(provider),
+        model: stored.model || defaultChatModel(provider),
       }
     }
   } catch {
@@ -57,9 +55,6 @@ export function subscribeChatProvider(listener) {
 
 export async function* streamProviderChat(messages, config = getChatProvider()) {
   if (config.provider === 'ollama-local') {
-    if (!canUseLocalOllama()) {
-      throw new Error('Local Ollama is only available when this page is running on localhost. On the hosted app, use Ollama Cloud with a Vercel OLLAMA_API_KEY or enter an API key in the provider panel.')
-    }
     yield* streamLocalOllama(messages, config)
     return
   }
@@ -90,11 +85,19 @@ async function* streamLocalOllama(messages, config) {
       content: message.text,
     })),
   }
-  const response = await fetch('http://127.0.0.1:11434/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: assertSmallRequest(body),
-  })
+  let response
+  try {
+    response = await fetch('http://127.0.0.1:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: assertSmallRequest(body),
+    })
+  } catch (error) {
+    throw new Error(
+      `Could not reach Ollama Local from this page. Make sure Ollama is running and, if this is the hosted app, allow this origin in Ollama CORS settings. Original error: ${error?.message || 'fetch failed'}`,
+      { cause: error },
+    )
+  }
   if (!response.ok) {
     const detail = (await response.text()).trim()
     throw new Error(detail || `Ollama Local returned ${response.status}`)

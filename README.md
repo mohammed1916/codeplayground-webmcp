@@ -33,7 +33,7 @@ Open `http://localhost:5173/`. In a WebMCP-capable browser or ChatGPT in-app bro
 
 ## Hosted AI providers
 
-Local Ollama only works when the app runs on `localhost`; hosted browsers cannot reliably call `127.0.0.1:11434` because of browser CORS rules. On Vercel, use the included `/api/chat` proxy and set one or both environment variables:
+Local Ollama works automatically when the app runs on `localhost`. From the hosted Vercel app, Local Ollama can still be selected, but the browser may block `127.0.0.1:11434` unless your local Ollama allows the hosted origin. For the smoothest hosted demo, use the included `/api/chat` proxy and set one or both environment variables:
 
 ```bash
 OLLAMA_API_KEY=...

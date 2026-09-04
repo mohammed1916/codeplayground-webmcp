@@ -40,7 +40,7 @@ export default function PlaygroundAIProviderControls() {
   ));
   const [localModels, setLocalModels] = useState([]);
   const [localStatus, setLocalStatus] = useState(() => (
-    canUseLocalOllama() ? "checking" : "hosted"
+    canUseLocalOllama() ? "checking" : "manual"
   ));
 
   useEffect(() => subscribeChatProvider(setConfig), []);
@@ -82,7 +82,7 @@ export default function PlaygroundAIProviderControls() {
   const selected = PROVIDERS.find((provider) => provider.value === config.provider)
     ?? PROVIDERS[0];
   const effectiveLocalStatus = config.provider === "ollama-local" && !canUseLocalOllama()
-    ? "hosted"
+    ? "manual"
     : localStatus;
 
   return (
@@ -118,7 +118,7 @@ export default function PlaygroundAIProviderControls() {
               const provider = PROVIDERS.find((item) => item.value === event.target.value)
                 ?? PROVIDERS[0];
               if (provider.value === "ollama-local") {
-                setLocalStatus(canUseLocalOllama() ? "checking" : "hosted");
+                setLocalStatus(canUseLocalOllama() ? "checking" : "manual");
               }
               updateConfig({ provider: provider.value, model: provider.model });
             }}
@@ -188,8 +188,8 @@ export default function PlaygroundAIProviderControls() {
         {config.provider === "ollama-local"
           ? effectiveLocalStatus === "ready"
             ? <><strong className="runtime-playground__ollama-ready">Ollama detected.</strong><span> {localModels.length} installed model{localModels.length === 1 ? "" : "s"}; </span><code>{config.model || selected.model}</code><span>{localModels.includes(config.model || selected.model) ? " is available." : " is not installed yet."}</span></>
-            : effectiveLocalStatus === "hosted"
-              ? "Local Ollama is only available when running this app on your own computer. Use Ollama Cloud or Gemini here."
+            : effectiveLocalStatus === "manual"
+              ? "Local Ollama can be used from the hosted app if Ollama is running on your computer and allows this site. If it fails, use Ollama Cloud or Gemini."
             : effectiveLocalStatus === "unavailable"
               ? <><strong className="runtime-playground__ollama-unavailable">Ollama not detected.</strong><span> Run </span><code>ollama run {config.model || selected.model}</code><span>, then reopen this panel.</span></>
               : "Checking for Ollama on this computer..."
