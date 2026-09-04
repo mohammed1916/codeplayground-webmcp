@@ -2,12 +2,11 @@
 
 A standalone WebMCP-enabled algorithm visualization playground. The app opens directly to the live code workspace and can dynamically visualize arrays, heaps, queues, stacks, linked lists, maps, sets, grids, DP tables, graphs, and trees from JavaScript `viz.*` calls or traced Python variables.
 
-
 ### Demo
 
 Demo: [www.youtube.com/watch?v=ZDfXHrO67Dc](https://www.youtube.com/watch?v=ZDfXHrO67Dc)
 
-Extended Silent Walkthrough: [youtu.be/BrXhr0kSsKs](https://youtu.be/BrXhr0kSsKs) (for Fix with AI/Propose code)
+Extended Walkthrough: [youtu.be/4DDhY_lC7WI](https://youtu.be/4DDhY_lC7WI) (for Fix with AI/Propose code)
 
 ## WebMCP tools
 
