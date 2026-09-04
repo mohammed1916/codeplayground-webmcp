@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   canUseLocalOllama,
+  DEFAULT_LOCAL_OLLAMA_URL,
   getChatProvider,
   setChatProvider,
   subscribeChatProvider,
@@ -27,6 +28,10 @@ function storeSessionValue(key, value) {
   } catch {
     // Provider configuration remains usable when session storage is disabled.
   }
+}
+
+function isHostedPage() {
+  return !canUseLocalOllama();
 }
 
 export default function PlaygroundAIProviderControls() {
@@ -81,7 +86,9 @@ export default function PlaygroundAIProviderControls() {
   };
   const selected = PROVIDERS.find((provider) => provider.value === config.provider)
     ?? PROVIDERS[0];
-  const effectiveLocalStatus = config.provider === "ollama-local" && !canUseLocalOllama()
+  const isHosted = isHostedPage();
+  const appOrigin = typeof window === "undefined" ? "" : window.location.origin;
+  const effectiveLocalStatus = config.provider === "ollama-local" && isHosted
     ? "manual"
     : localStatus;
 
@@ -120,7 +127,11 @@ export default function PlaygroundAIProviderControls() {
               if (provider.value === "ollama-local") {
                 setLocalStatus(canUseLocalOllama() ? "checking" : "manual");
               }
-              updateConfig({ provider: provider.value, model: provider.model });
+              updateConfig({
+                ...config,
+                provider: provider.value,
+                model: provider.model,
+              });
             }}
           >
             {PROVIDERS.map((provider) => (
@@ -150,6 +161,42 @@ export default function PlaygroundAIProviderControls() {
             </datalist>
           )}
         </label>
+
+        {config.provider === "ollama-local" && (
+          <label htmlFor="runtime-playground-ollama-local-url">
+            Local endpoint
+            <input
+              id="runtime-playground-ollama-local-url"
+              type="url"
+              value={config.localBaseUrl || DEFAULT_LOCAL_OLLAMA_URL}
+              onChange={(event) => updateConfig({
+                ...config,
+                localBaseUrl: event.target.value,
+              })}
+              placeholder={DEFAULT_LOCAL_OLLAMA_URL}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </label>
+        )}
+
+        {config.provider === "ollama-local" && isHosted && (
+          <label htmlFor="runtime-playground-ollama-hosted-local">
+            Hosted access
+            <span>
+              <input
+                id="runtime-playground-ollama-hosted-local"
+                type="checkbox"
+                checked={Boolean(config.allowHostedLocal)}
+                onChange={(event) => updateConfig({
+                  ...config,
+                  allowHostedLocal: event.target.checked,
+                })}
+              />
+              Try Local Ollama from this hosted page
+            </span>
+          </label>
+        )}
 
         {config.provider === "ollama-cloud" && (
           <label htmlFor="runtime-playground-ollama-key">
@@ -195,6 +242,45 @@ export default function PlaygroundAIProviderControls() {
               : "Checking for Ollama on this computer..."
           : "AI suggestions are ready. If the hosted demo has no saved key, enter your API key for this session."}
       </p>
+
+      {config.provider === "ollama-local" && (
+        <details className="runtime-playground__ollama-guide">
+          <summary>
+            <span aria-hidden="true">ⓘ</span>
+            Local Ollama setup
+          </summary>
+          <div>
+            <p>
+              To use Local Ollama from this {isHosted ? "hosted page" : "computer"}, install Ollama, pull a model, and keep Ollama running.
+            </p>
+            <ol>
+              <li>
+                Pull the default model:
+                <code>ollama pull {config.model || selected.model}</code>
+              </li>
+              <li>
+                Or pull the small recommended model:
+                <code>ollama pull gemma2:2b</code>
+              </li>
+              {isHosted && (
+                <li>
+                  Allow this hosted site in Ollama, then restart Ollama:
+                  <code>setx OLLAMA_ORIGINS "{appOrigin}"</code>
+                </li>
+              )}
+              <li>
+                If Ollama is not already open:
+                <code>ollama serve</code>
+              </li>
+            </ol>
+            {isHosted && (
+              <p>
+                After restarting Ollama, enable “Try Local Ollama from this hosted page.” Judges must do the same on their own computer, so Ollama Cloud or Gemini is safer for zero-setup judging.
+              </p>
+            )}
+          </div>
+        </details>
+      )}
       </div>
       </div>
     </section>

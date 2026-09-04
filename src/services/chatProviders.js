@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'chat.provider.v1'
 const PROVIDER_EVENT = 'cpviz-chat-provider-change'
 const MAX_CHAT_REQUEST_CHARS = 90_000
+export const DEFAULT_LOCAL_OLLAMA_URL = 'http://127.0.0.1:11434'
 
 export function defaultChatModel(provider = 'ollama-local') {
   if (provider === 'gemini') return 'gemini-2.5-flash'
@@ -17,18 +18,27 @@ export function getChatProvider() {
       return {
         provider,
         model: stored.model || defaultChatModel(provider),
+        localBaseUrl: stored.localBaseUrl || DEFAULT_LOCAL_OLLAMA_URL,
+        allowHostedLocal: Boolean(stored.allowHostedLocal),
       }
     }
   } catch {
     // Fall through to the environment-aware default.
   }
-  return { provider: fallbackProvider, model: defaultChatModel(fallbackProvider) }
+  return {
+    provider: fallbackProvider,
+    model: defaultChatModel(fallbackProvider),
+    localBaseUrl: DEFAULT_LOCAL_OLLAMA_URL,
+    allowHostedLocal: false,
+  }
 }
 
 export function setChatProvider(value) {
   const next = {
     provider: value?.provider || 'ollama-local',
     model: value?.model || defaultChatModel(value?.provider),
+    localBaseUrl: value?.localBaseUrl || DEFAULT_LOCAL_OLLAMA_URL,
+    allowHostedLocal: Boolean(value?.allowHostedLocal),
   }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
@@ -76,7 +86,27 @@ function assertSmallRequest(body) {
   return serialized
 }
 
+function normalizeOllamaBaseUrl(value) {
+  return String(value || DEFAULT_LOCAL_OLLAMA_URL).trim().replace(/\/+$/, '')
+}
+
+function isLoopbackOllamaUrl(value) {
+  try {
+    const url = new URL(normalizeOllamaBaseUrl(value))
+    return url.hostname === '127.0.0.1'
+      || url.hostname === 'localhost'
+      || url.hostname === '[::1]'
+      || url.hostname === '::1'
+  } catch {
+    return true
+  }
+}
+
 async function* streamLocalOllama(messages, config) {
+  const baseUrl = normalizeOllamaBaseUrl(config.localBaseUrl)
+  if (!canUseLocalOllama() && isLoopbackOllamaUrl(baseUrl) && !config.allowHostedLocal) {
+    throw new Error('Local Ollama from the hosted app needs browser access to your computer. Enable the hosted Local Ollama option after starting Ollama with CORS for this site, or use Ollama Cloud/Gemini.')
+  }
   const body = {
     model: config.model || defaultChatModel('ollama-local'),
     stream: true,
@@ -87,7 +117,7 @@ async function* streamLocalOllama(messages, config) {
   }
   let response
   try {
-    response = await fetch('http://127.0.0.1:11434/api/chat', {
+    response = await fetch(`${baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: assertSmallRequest(body),

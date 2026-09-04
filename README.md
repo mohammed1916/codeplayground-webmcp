@@ -44,6 +44,23 @@ If your Ollama Cloud account uses a custom compatible base URL, also set `OLLAMA
 
 You can also enter a key in the provider panel during a session, but Vercel environment variables are better for demos.
 
+### Local Ollama from the hosted app
+
+Each user who wants hosted-page access to their own Local Ollama must run Ollama locally and allow the hosted origin:
+
+```powershell
+ollama pull gemma2:2b
+setx OLLAMA_ORIGINS "https://codeplaygroundwebmcp.vercel.app"
+```
+
+Then fully restart Ollama. If Ollama is not already running:
+
+```powershell
+ollama serve
+```
+
+In the app, select `Ollama Local`, then enable `Try Local Ollama from this hosted page`.
+
 ## License
 
 Copyright (C) 2026 Mohammed Abdullah <2023176026@student.annauniv.edu>

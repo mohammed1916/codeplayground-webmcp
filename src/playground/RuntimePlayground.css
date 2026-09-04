@@ -495,6 +495,68 @@
   color: var(--primary);
 }
 
+.runtime-playground__ollama-guide {
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--primary-glow) 60%, transparent);
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.runtime-playground__ollama-guide summary {
+  padding: 7px 9px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.runtime-playground__ollama-guide summary::-webkit-details-marker {
+  display: none;
+}
+
+.runtime-playground__ollama-guide summary span {
+  color: var(--primary);
+  font-size: 0.75rem;
+}
+
+.runtime-playground__ollama-guide > div {
+  padding: 0 9px 9px;
+}
+
+.runtime-playground__ollama-guide p {
+  margin: 0 0 7px;
+}
+
+.runtime-playground__ollama-guide ol {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.runtime-playground__ollama-guide li {
+  padding-left: 2px;
+}
+
+.runtime-playground__ollama-guide code {
+  display: block;
+  margin-top: 3px;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--code-text);
+  font: 0.61rem/1.35 monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .runtime-playground__ollama-ready {
   color: var(--success);
 }
